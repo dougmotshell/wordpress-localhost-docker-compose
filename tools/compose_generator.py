@@ -9,7 +9,8 @@ TEMPLATE_FILE = SCRIPT_DIR / 'docker-compose.template.yml'
 ENV_FILE = SCRIPT_DIR / '.env'
 OUTPUT_FILE = SCRIPT_DIR.parent / 'docker-compose.yml'
 
-# Function to read variables from .env
+
+# Function to read variables from .env (removes surrounding quotes from values)
 def read_env(env_path):
     env_vars = {}
     if not os.path.exists(env_path):
@@ -22,17 +23,23 @@ def read_env(env_path):
                 continue
             if '=' in line:
                 key, value = line.split('=', 1)
-                env_vars[key.strip()] = value.strip()
+                value = value.strip()
+                # Remove surrounding quotes if present
+                if (value.startswith('"') and value.endswith('"')) or (value.startswith("'") and value.endswith("'")):
+                    value = value[1:-1]
+                env_vars[key.strip()] = value
     return env_vars
 
 # Function to substitute variables in the template
+
+# Function to substitute all variable names in the template with their values from .env
 def substitute_vars(template, env_vars):
-    # Replace ${VAR} or $VAR with value from .env
-    def replacer(match):
-        var_name = match.group(1) or match.group(2)
-        return env_vars.get(var_name, match.group(0))
-    pattern = re.compile(r'\${([A-Za-z0-9_]+)}|\$([A-Za-z0-9_]+)')
-    return pattern.sub(replacer, template)
+    # Replace all occurrences of each variable name with its value (including in keys, values, and volumes)
+    result = template
+    for var, value in env_vars.items():
+        # Replace all occurrences, not just as a word
+        result = result.replace(var, value)
+    return result
 
 def main():
     # Read variables from .env
