@@ -2,10 +2,12 @@ import os
 import re
 from pathlib import Path
 
-# File paths
-TEMPLATE_FILE = 'docker-compose.template.yml'
-ENV_FILE = '.env'
-OUTPUT_FILE = 'docker-compose.yml'
+
+# File paths relative to the script location
+SCRIPT_DIR = Path(__file__).parent.resolve()
+TEMPLATE_FILE = SCRIPT_DIR / 'docker-compose.template.yml'
+ENV_FILE = SCRIPT_DIR / '.env'
+OUTPUT_FILE = SCRIPT_DIR.parent / 'docker-compose.yml'
 
 # Function to read variables from .env
 def read_env(env_path):
